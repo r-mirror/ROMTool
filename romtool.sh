@@ -33,7 +33,7 @@ MANIFEST=$(Config.xml)
 REMOTE=$(Config.remote)
 MANIFEST="${MANIFEST:-$CWD/.repo/manifests/snippets/bianca.xml}"
 REMOTE="${REMOTE:-dudu}"
-    
+
 doInit() {
     dbg "Info: Creating project.list"
 
@@ -51,9 +51,23 @@ doInit() {
 }
 
 doList() {
-    prin "TODO"
-}
+    [[ -f $LIST ]] || err "Error: File project.list not found, please do init first"
 
+    local PROJECTPATH=()
+    local CURRENTBRANCH=()
+    local REPO=($(cat $LIST))
+
+    for i in "${REPO[@]}"
+    do
+        PROJECTPATH+=("$i")
+        CURRENTBRANCH+=("$(git -C "$CWD/$i" branch --show-current || echo " ")")
+    done
+
+    paste <(printf '%s\n' Path "${PROJECTPATH[@]}") \
+        <(printf '%s\n' Branch "${CURRENTBRANCH[@]}") \
+        | column -ts $'\t'
+
+}
 doRebase() {
     prin "TODO"
 }
@@ -82,6 +96,10 @@ while [[ $# -gt 0 ]]; do
             else
                 err "Error: Argument for $1 is missing or more/less than 1 argument"
             fi
+            exit
+            ;;
+        branch)
+            doList
             exit
             ;;
         --)
