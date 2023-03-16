@@ -190,6 +190,30 @@ doFetch() {
     done
 }
 
+doPush() {
+    local REMOTE=$1
+    local BRANCH=$2
+    [[ -n $FORCE ]] && red "Warning! Force push!" && FORCE="--force"
+
+    cat "${LIST}" | while read l; do
+        set ${l}
+
+        if [ ! -d "$1" ]; then continue; fi
+
+        prin "Push repo $1 with branch $BRANCH"
+
+        if ! git -C "$CWD/$1" push $FORCE $REMOTE $BRANCH
+        then
+            red "Failed push repo $1"
+            continue
+        fi
+
+        grn "Success"
+        prin
+
+    done
+}
+
 # Parse options
 END_OF_OPT=
 POSITIONAL=()
@@ -231,6 +255,26 @@ while [[ $# -gt 0 ]]; do
                 shift 2
             else
                 err "Error: Argument for $1 is missing or more/less than 2 argument. Command: fetch <remote> <branch>"
+            fi
+            exit
+            ;;
+        push)
+            if [ -n "$2" ] && [ -n "$3" ] && [ ${2:0:1} != "-" ]; then
+                checkPath
+                doPush "$2" "$3"
+                shift 2
+            else
+                err "Error: Argument for $1 is missing or more/less than 2 argument. Command: push <remote> <branch>"
+            fi
+            exit
+            ;;
+        push-force)
+            if [ -n "$2" ] && [ -n "$3" ] && [ ${2:0:1} != "-" ]; then
+                checkPath
+                doPush "$2" "$3" true
+                shift 2
+            else
+                err "Error: Argument for $1 is missing or more/less than 2 argument. Command: push-force <remote> <branch>"
             fi
             exit
             ;;
