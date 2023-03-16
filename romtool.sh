@@ -165,15 +165,14 @@ doFetch() {
 
     cat "${LIST}" | while read l; do
         set ${l}
-        PROJECTPATH="${1}"
 
-        if [ ! -d "${PROJECTPATH}" ]; then continue; fi
+        if [ ! -d "$1" ]; then continue; fi
 
-        prin "Fetching repo $PROJECTPATH with branch $BRANCH"
+        prin "Fetching repo $1 with branch $BRANCH"
 
         if ! git -C "$CWD/$1" fetch -q $REMOTE $BRANCH
         then
-            red "Failed fetching repo $PROJECTPATH"
+            red "Failed fetching repo $1"
             continue
         fi
 
