@@ -73,7 +73,7 @@ doList() {
 doRebase() {
     [[ -f $LIST ]] || err "Error: File project.list not found, please do init first"
 
-    local PROJECTPATHS=$(cat project.list)
+    local PROJECTPATHS=$(cat $LIST)
     local BRANCH=$1
     local TAG=$2
 
