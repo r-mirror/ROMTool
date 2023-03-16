@@ -111,6 +111,7 @@ doRebase() {
                 continue
             fi
             if ! git -C "$CWD/$PROJECTPATH" fetch -q $repo_url $TAG
+            then
                 red "Error: Failed fetching repo $PROJECTPATH, please check connection. Continue to next repo"
                 continue
             fi
