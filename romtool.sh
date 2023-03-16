@@ -179,7 +179,7 @@ while [[ $# -gt 0 ]]; do
             fi
             exit
             ;;
-        branch)
+        list)
             doList
             exit
             ;;
