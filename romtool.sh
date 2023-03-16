@@ -184,7 +184,12 @@ while [[ $# -gt 0 ]]; do
             exit
             ;;
         rebase)
-            doRebase
+            if [ -n "$2" ] && [ -n "$3" ] && [ ${2:0:1} != "-" ]; then
+                doRebase "$2" "$3"
+                shift 2
+            else
+                err "Error: Argument for $1 is missing or more/less than 2 argument. Command: rebase <currentbranch> <aospnewtag>"
+            fi
             exit
             ;;
         --)
