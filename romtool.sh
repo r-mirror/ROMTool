@@ -137,7 +137,24 @@ doRebase() {
 }
 
 doStart() {
-    prin "TODO"
+    [[ -f $LIST ]] || err "Error: File project.list not found, please do init first"
+
+    BRANCH=$1
+
+    cat "${LIST}" | while read l; do
+        set ${l}
+        PROJECTPATH="${1}"
+
+        if [ ! -d "${PROJECTPATH}" ]; then continue; fi
+
+        prin "Starting repo $PROJECTPATH to $BRANCH"
+        prin
+
+        repo start "${BRANCH}" "${PROJECTPATH}" || red "Failed start repo $PROJECTPATH"
+
+    done
+
+    dbg "Info: Success start repo to $BRANCH"
 }
 
 #if [ ! -e "build/envsetup.sh" ]; then
@@ -158,7 +175,7 @@ while [[ $# -gt 0 ]]; do
                 doStart "$2"
                 shift
             else
-                err "Error: Argument for $1 is missing or more/less than 1 argument"
+                err "Error: Argument for $1 is missing or more/less than 1 argument. Command: start <branch>"
             fi
             exit
             ;;
