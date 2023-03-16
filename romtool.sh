@@ -281,11 +281,26 @@ doReset() {
     done
 }
 
+usage() {
+    prin "Usage: $(basename $0) <command> [<argument>]"
+    prin
+    prin "Command:"
+    prin "  init                                Initial with creating project.list"
+    prin "  list                                Listing project.list"
+    prin "  start <branch>                      Creating new branch"
+    prin "  checkout <branch>                   Checkout all repo with already branch"
+    prin "  fetch <remote> <branch>             Fetching all repo"
+    prin "  reset-hard <branch>                 Reseting hard"
+    prin "  rebase <currentbranch> <aosptag>    Rebase all repo with new aosp tag"
+    prin "  push <remote> <branch>              Push all repo"
+    prin "  push-force <remote> <branch>        Push all repo with flag --force"
+    prin "  help                                Print usage"
+    prin
+}
+
 # Parse options
-END_OF_OPT=
-POSITIONAL=()
 while [[ $# -gt 0 ]]; do
-    case "${END_OF_OPT}${1}" in
+    case "${1}" in
         init)
             checkPath
             exit
@@ -365,13 +380,10 @@ while [[ $# -gt 0 ]]; do
             fi
             exit
             ;;
-        --)
-            END_OF_OPT=1 ;;
-        *)
-            POSITIONAL+=("$1") ;;
+        help|*)
+            usage
+            exit
+            ;;
     esac
     shift
 done
-
-# Restore positional parameters
-set -- "${POSITIONAL[@]}"
