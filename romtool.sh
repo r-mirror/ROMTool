@@ -137,7 +137,7 @@ doRebase() {
 }
 
 doStart() {
-    [[ -f $LIST ]] || err "Error: File project.list not found, please do init first"
+    [[ -f $LIST ]] || doInit
 
     BRANCH=$1
 
