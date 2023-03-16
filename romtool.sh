@@ -107,7 +107,7 @@ doRebase() {
             prin "`blu Rebasaing $PROJECTPATH`"
             git -C "$CWD/$PROJECTPATH" checkout "${BRANCH}" || red "Error: Failed checkout repo $PROJECTPATH to branch $BRANCH, please check again"; prin; continue
             prin 
-            git -C "$CWD/$PROJECTPATH" fetch -q $repo_url $TAG &> /dev/null
+            git -C "$CWD/$PROJECTPATH" fetch -q $repo_url $TAG &> /dev/null || red "Error: Failed fetching repo $PROJECTPATH, please check connection. Continue to next repo"; prin; continue
             git -C "$CWD/$PROJECTPATH" branch -D "${BRANCH}-rebase-${TAG}" &> /dev/null
             git -C "$CWD/$PROJECTPATH" checkout -b "${BRANCH}-rebase-${TAG}" &> /dev/null
             if git -C "$CWD/$PROJECTPATH" rebase FETCH_HEAD &> /dev/null; then
