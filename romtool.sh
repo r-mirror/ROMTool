@@ -157,6 +157,28 @@ doStart() {
     dbg "Info: Success start repo to $BRANCH"
 }
 
+doFetch() {
+    [[ -f $LIST ]] || err "Error: File project.list not found, please do init first"
+
+    local REMOTE=$1
+    local BRANCH=$2
+
+    cat "${LIST}" | while read l; do
+        set ${l}
+        PROJECTPATH="${1}"
+
+        if [ ! -d "${PROJECTPATH}" ]; then continue; fi
+
+        prin "Fetching repo $PROJECTPATH with branch $BRANCH"
+        prin
+
+        git -C "$CWD/$1" fetch -q $REMOTE $BRANCH || red "Error: Failed fetching repo $1"; prin
+
+    done
+
+    dbg "Info: Success start repo to $BRANCH"
+}
+
 #if [ ! -e "build/envsetup.sh" ]; then
 #    echo "Error: Must run from root of repo"
 #fi
@@ -189,6 +211,15 @@ while [[ $# -gt 0 ]]; do
                 shift 2
             else
                 err "Error: Argument for $1 is missing or more/less than 2 argument. Command: rebase <currentbranch> <aospnewtag>"
+            fi
+            exit
+            ;;
+        fetch)
+            if [ -n "$2" ] && [ -n "$3" ] && [ ${2:0:1} != "-" ]; then
+                doFetch "$2" "$3"
+                shift 2
+            else
+                err "Error: Argument for $1 is missing or more/less than 2 argument. Command: fetch <remote> <branch>"
             fi
             exit
             ;;
