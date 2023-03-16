@@ -37,6 +37,8 @@ MANIFEST="${MANIFEST:-$CWD/.repo/manifests/snippets/bianca.xml}"
 REMOTE="${REMOTE:-dudu}"
 
 doInit() {
+    [[ -e "build/envsetup.sh" ]] || err "Error: Must run from root of repo"
+
     dbg "Info: Creating project.list"
 
     # Build list of Bianca Project forked repos
@@ -302,7 +304,7 @@ usage() {
 while [[ $# -gt 0 ]]; do
     case "${1}" in
         init)
-            checkPath
+            doInit
             exit
             ;;
         start)
