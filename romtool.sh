@@ -65,8 +65,8 @@ doList() {
         CURRENTBRANCH+=("$(git -C "$CWD/$i" branch --show-current || echo " ")")
     done
 
-    paste <(printf '%s\n' Path "${PROJECTPATH[@]}") \
-        <(printf '%s\n' Branch "${CURRENTBRANCH[@]}") \
+    paste <(printf '%s\n' `blu Path` "${PROJECTPATH[@]}") \
+        <(printf '%s\n' `blu Branch` "${CURRENTBRANCH[@]}") \
         | column -ts $'\t'
 
 }
