@@ -182,6 +182,7 @@ doFetch() {
         fi
 
         grn "Success"
+        prin
 
     done
 }
