@@ -236,6 +236,29 @@ doCheckout() {
     done
 }
 
+doReset() {
+    local BRANCH=$1
+
+    cat "${LIST}" | while read l; do
+        set ${l}
+
+        if [ ! -d "$1" ]; then continue; fi
+
+        prin "Reset-hard repo $1 to $BRANCH"
+
+        if ! git -C "$CWD/$1" reset --hard $BRANCH &> /dev/null
+        then
+            red "Failed reset-hard repo $1"
+            prin
+            continue
+        fi
+
+        grn "Success"
+        prin
+
+    done
+}
+
 # Parse options
 END_OF_OPT=
 POSITIONAL=()
@@ -307,6 +330,16 @@ while [[ $# -gt 0 ]]; do
                 shift
             else
                 err "Error: Argument for $1 is missing or more/less than 1 argument. Command: checkout <branch>"
+            fi
+            exit
+            ;;
+        reset-hard)
+            if [ -n "$2" ] && [ ${2:0:1} != "-" ]; then
+                checkPath
+                doReset "$2"
+                shift
+            else
+                err "Error: Argument for $1 is missing or more/less than 1 argument. Command: reset-hard <branch>"
             fi
             exit
             ;;
