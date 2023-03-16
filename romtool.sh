@@ -214,6 +214,28 @@ doPush() {
     done
 }
 
+doCheckout() {
+    local BRANCH=$1
+
+    cat "${LIST}" | while read l; do
+        set ${l}
+
+        if [ ! -d "$1" ]; then continue; fi
+
+        prin "Checkouting repo $1 to $BRANCH"
+
+        if ! git -C "$CWD/$1" checkout $BRANCH &> /dev/null
+        then
+            red "Failed checkout repo $1"
+            continue
+        fi
+
+        grn "Success"
+        prin
+
+    done
+}
+
 # Parse options
 END_OF_OPT=
 POSITIONAL=()
@@ -275,6 +297,16 @@ while [[ $# -gt 0 ]]; do
                 shift 2
             else
                 err "Error: Argument for $1 is missing or more/less than 2 argument. Command: push-force <remote> <branch>"
+            fi
+            exit
+            ;;
+        checkout)
+            if [ -n "$2" ] && [ ${2:0:1} != "-" ]; then
+                checkPath
+                doCheckout "$2"
+                shift
+            else
+                err "Error: Argument for $1 is missing or more/less than 1 argument. Command: checkout <branch>"
             fi
             exit
             ;;
