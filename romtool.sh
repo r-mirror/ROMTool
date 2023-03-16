@@ -52,9 +52,17 @@ doInit() {
 
 }
 
-doList() {
-    [[ -f $LIST ]] || err "Error: File project.list not found, please do init first"
+checkPath() {
+    # Checking file build/envsetup.sh
+    if [ ! -e "build/envsetup.sh" ]; then
+        err "Error: Must run from root of repo"
+    fi
 
+    # Checking file project.list, if false run doInit
+    [[ -f $LIST ]] || doInit #err "Error: File project.list not found, please do init first"
+}
+
+doList() {
     local PROJECTPATH=()
     local CURRENTBRANCH=()
     local REPO=($(cat $LIST))
@@ -71,8 +79,6 @@ doList() {
 
 }
 doRebase() {
-    [[ -f $LIST ]] || err "Error: File project.list not found, please do init first"
-
     local PROJECTPATHS=$(cat $LIST)
     local BRANCH=$1
     local TAG=$2
@@ -143,8 +149,6 @@ doRebase() {
 }
 
 doStart() {
-    [[ -f $LIST ]] || doInit
-
     BRANCH=$1
 
     cat "${LIST}" | while read l; do
@@ -164,8 +168,6 @@ doStart() {
 }
 
 doFetch() {
-    [[ -f $LIST ]] || err "Error: File project.list not found, please do init first"
-
     local REMOTE=$1
     local BRANCH=$2
 
@@ -188,21 +190,18 @@ doFetch() {
     done
 }
 
-#if [ ! -e "build/envsetup.sh" ]; then
-#    echo "Error: Must run from root of repo"
-#fi
-
 # Parse options
 END_OF_OPT=
 POSITIONAL=()
 while [[ $# -gt 0 ]]; do
     case "${END_OF_OPT}${1}" in
         init)
-            doInit
+            checkPath
             exit
             ;;
         start)
             if [ -n "$2" ] && [ ${2:0:1} != "-" ]; then
+                checkPath
                 doStart "$2"
                 shift
             else
@@ -211,11 +210,13 @@ while [[ $# -gt 0 ]]; do
             exit
             ;;
         list)
+            checkPath
             doList
             exit
             ;;
         rebase)
             if [ -n "$2" ] && [ -n "$3" ] && [ ${2:0:1} != "-" ]; then
+                checkPath
                 doRebase "$2" "$3"
                 shift 2
             else
@@ -225,6 +226,7 @@ while [[ $# -gt 0 ]]; do
             ;;
         fetch)
             if [ -n "$2" ] && [ -n "$3" ] && [ ${2:0:1} != "-" ]; then
+                checkPath
                 doFetch "$2" "$3"
                 shift 2
             else
