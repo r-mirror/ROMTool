@@ -79,10 +79,22 @@ doList() {
 
 }
 
+changeBranchManifest() {
+    local XML="$CWD/manifest/snippets/aheads.xml"
+    local OLD=$1
+    local NEW=$2
+
+    # Specific line 6 only to be replace
+    sed -i "6s|$OLD|$NEW|" $XML
+
+    git -C "$CWD/manifest" commit -a -m "manifest: Changed branch to $NEW for testing" || return 1
+}
+
 doRebase() {
     local PROJECTPATHS=$(cat $LIST)
     local BRANCH=$1
     local TAG=$2
+    local NEWBRANCH="${BRANCH}-rebase-${TAG}"
 
     # Make sure manifest and forked repos are in a consistent state
     prin "#### Verifying there are no uncommitted changes on forked AOSP projects ####"
@@ -122,8 +134,8 @@ doRebase() {
                 red "Error: Failed fetching repo $PROJECTPATH, please check connection. Continue to next repo"
                 continue
             fi
-            git -C "$CWD/$PROJECTPATH" branch -D "${BRANCH}-rebase-${TAG}" &> /dev/null
-            git -C "$CWD/$PROJECTPATH" checkout -b "${BRANCH}-rebase-${TAG}" &> /dev/null
+            git -C "$CWD/$PROJECTPATH" branch -D "$NEWBRANCH" &> /dev/null
+            git -C "$CWD/$PROJECTPATH" checkout -b "$NEWBRANCH" &> /dev/null
             if git -C "$CWD/$PROJECTPATH" rebase FETCH_HEAD &> /dev/null; then
                 if [[ $(git -C "$CWD/$PROJECTPATH" rev-parse HEAD) != $(git -C "$CWD/$PROJECTPATH" rev-parse $REMOTE/$BRANCH) ]] && [[ $(git -C "$CWD/$PROJECTPATH" diff HEAD $REMOTE/$BRANCH) ]]; then
                     echo "$PROJECTPATH" >> $CWD/success.list
@@ -131,7 +143,7 @@ doRebase() {
                 else
                     prin "$PROJECTPATH - unchanged"
                     git -C "$CWD/$PROJECTPATH" checkout "${BRANCH}" &> /dev/null
-                    git -C "$CWD/$PROJECTPATH" branch -D "${BRANCH}-rebase-${TAG}" &> /dev/null
+                    git -C "$CWD/$PROJECTPATH" branch -D "$NEWBRANCH" &> /dev/null
                 fi
             else
                 echo "$PROJECTPATH" >> $CWD/failed.list
@@ -147,6 +159,12 @@ doRebase() {
     cat "$CWD/success.list"
     red "These repos success rebasaing:"
     cat "$CWD/failed.list"
+
+    if [[ -f "$CWD/manifest/snippets/bianca.xml" ]]
+    then
+        dbg "Detected Bianca Project XML. Trying to change branch with new rebased branch"
+        changeBranchManifest "$BRANCH" "$NEWBRANCH"
+    fi 
 }
 
 doStart() {
