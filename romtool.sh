@@ -78,6 +78,7 @@ doList() {
         | column -ts $'\t'
 
 }
+
 doRebase() {
     local PROJECTPATHS=$(cat $LIST)
     local BRANCH=$1
@@ -181,6 +182,7 @@ doFetch() {
         if ! git -C "$CWD/$1" fetch -q $REMOTE $BRANCH
         then
             red "Failed fetching repo $1"
+            prin
             continue
         fi
 
@@ -205,6 +207,7 @@ doPush() {
         if ! git -C "$CWD/$1" push $FORCE $REMOTE $BRANCH
         then
             red "Failed push repo $1"
+            prin
             continue
         fi
 
@@ -227,6 +230,7 @@ doCheckout() {
         if ! git -C "$CWD/$1" checkout $BRANCH &> /dev/null
         then
             red "Failed checkout repo $1"
+            prin
             continue
         fi
 
