@@ -12,6 +12,7 @@ dbg() { echo -e "\e[92m[*] $@\e[39m"; }
 err() { echo -e "\e[91m[!] $@\e[39m"; exit 1; }
 grn() { echo -e "\e[92m$@\e[39m"; }
 red() { echo -e "\e[91m$@\e[39m"; }
+blu() { echo -e "\e[34m$@\e[39m"; }
 prin() { echo -e "$@"; }
 
 # Checking dependencies
@@ -27,6 +28,7 @@ Config.xml() { git config -f "$CONF" rom.xml "$@"; }
 Config.remote() { git config -f "$CONF" rom.remote "$@"; }
 
 # Environment default for BiancaProject
+AOSP="https://android.googlesource.com"
 LIST="${CWD}/project.list"
 BLACKLIST=$(cat "${CWD}/scripts/blacklist")
 MANIFEST=$(Config.xml)
@@ -69,7 +71,69 @@ doList() {
 
 }
 doRebase() {
-    prin "TODO"
+    [[ -f $LIST ]] || err "Error: File project.list not found, please do init first"
+
+    local PROJECTPATHS=$(cat project.list)
+    local BRANCH=$1
+    local TAG=$2
+
+    # Make sure manifest and forked repos are in a consistent state
+    prin "#### Verifying there are no uncommitted changes on forked AOSP projects ####"
+    for i in ${PROJECTPATHS} .repo/manifests; do
+        # cd "${CWD}/${PROJECTPATH}"
+        if [[ -n "$(git -C "$CWD/$i" status --porcelain)" ]]; then
+            err "Path ${i} has uncommitted changes. Please fix."
+        fi
+    done
+    prin "#### Verification complete - no uncommitted changes found ####"
+
+    for files in success.list failed.list
+    do
+        rm $CWD/$files 2> /dev/null
+        touch $CWD/$files
+    done
+
+    for PROJECTPATH in ${PROJECTPATHS}; do
+        if [[ "${BLACKLIST}" =~ "${PROJECTPATH}" ]]; then
+            continue
+        fi
+
+        case $PROJECTPATH in
+            build/make) repo_url="$AOSP/platform/build" ;;
+            *) repo_url="$AOSP/platform/$PROJECTPATH" ;;
+        esac
+
+        if wget -q --spider $repo_url; then
+            prin "`blu Rebasaing $PROJECTPATH`"
+            git -C "$CWD/$PROJECTPATH" checkout "${BRANCH}" || red "Error: Failed checkout repo $PROJECTPATH to branch $BRANCH, please check again"; prin; continue
+            prin 
+            git -C "$CWD/$PROJECTPATH" fetch -q $repo_url $TAG &> /dev/null
+            git -C "$CWD/$PROJECTPATH" branch -D "${BRANCH}-rebase-${TAG}" &> /dev/null
+            git -C "$CWD/$PROJECTPATH" checkout -b "${BRANCH}-rebase-${TAG}" &> /dev/null
+            if git -C "$CWD/$PROJECTPATH" rebase FETCH_HEAD &> /dev/null; then
+                if [[ $(git -C "$CWD/$PROJECTPATH" rev-parse HEAD) != $(git -C "$CWD/$PROJECTPATH" rev-parse $REMOTE/$BRANCH) ]] && [[ $(git -C "$CWD/$PROJECTPATH" diff HEAD $REMOTE/$BRANCH) ]]; then
+                    echo "$PROJECTPATH" >> $CWD/success.list
+                    prin "`grn Rebase $PROJECTPATH success`"
+                else
+                    prin "$PROJECTPATH - unchanged"
+                    git -C "$CWD/$PROJECTPATH" checkout "${BRANCH}" &> /dev/null
+                    git -C "$CWD/$PROJECTPATH" branch -D "${BRANCH}-rebase-${TAG}" &> /dev/null
+                fi
+            else
+                echo "$PROJECTPATH" >> $CWD/failed.list
+                prin "`red $REPO Rebasing failed`"
+            fi
+            # cd "${TOP}"
+        else
+            prin "`red Failed fetching, please check connection`"
+        fi
+    done
+
+    prin
+    prin "`grn These repos success rebasaing:`"
+    cat success.list
+    prin "`red These repos success rebasaing:`"
+    cat failed.list
 }
 
 doStart() {
@@ -100,6 +164,10 @@ while [[ $# -gt 0 ]]; do
             ;;
         branch)
             doList
+            exit
+            ;;
+        rebase)
+            doRebase
             exit
             ;;
         --)
