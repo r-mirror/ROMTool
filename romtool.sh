@@ -85,7 +85,7 @@ doRebase() {
             err "Path ${i} has uncommitted changes. Please fix."
         fi
     done
-    prin "#### Verification complete - no uncommitted changes found ####"
+    grn "#### Verification complete - no uncommitted changes found ####"
 
     for files in success.list failed.list
     do
@@ -104,7 +104,7 @@ doRebase() {
         esac
 
         if wget -q --spider $repo_url; then
-            prin "`blu Rebasaing $PROJECTPATH`"
+            blu "Rebasaing $PROJECTPATH"
             if  ! git -C "$CWD/$PROJECTPATH" checkout "${BRANCH}" &> /dev/null
             then
                 red "Error: Failed checkout repo $PROJECTPATH to branch $BRANCH, please check again. Continue to next repo"
@@ -119,7 +119,7 @@ doRebase() {
             if git -C "$CWD/$PROJECTPATH" rebase FETCH_HEAD &> /dev/null; then
                 if [[ $(git -C "$CWD/$PROJECTPATH" rev-parse HEAD) != $(git -C "$CWD/$PROJECTPATH" rev-parse $REMOTE/$BRANCH) ]] && [[ $(git -C "$CWD/$PROJECTPATH" diff HEAD $REMOTE/$BRANCH) ]]; then
                     echo "$PROJECTPATH" >> $CWD/success.list
-                    prin "`grn Rebase $PROJECTPATH success`"
+                    grn "Rebase $PROJECTPATH success"
                 else
                     prin "$PROJECTPATH - unchanged"
                     git -C "$CWD/$PROJECTPATH" checkout "${BRANCH}" &> /dev/null
@@ -127,19 +127,18 @@ doRebase() {
                 fi
             else
                 echo "$PROJECTPATH" >> $CWD/failed.list
-                prin "`red $REPO Rebasing failed`"
+                red "$REPO Rebasing failed"
             fi
-            # cd "${TOP}"
         else
-            prin "`red Failed fetching, please check connection`"
+            red "Failed fetching, please check connection"
         fi
     done
 
     prin
-    prin "`grn These repos success rebasaing:`"
-    cat success.list
-    prin "`red These repos success rebasaing:`"
-    cat failed.list
+    grn "These repos success rebasaing:"
+    cat "$CWD/success.list"
+    red "These repos success rebasaing:"
+    cat "$CWD/failed.list"
 }
 
 doStart() {
