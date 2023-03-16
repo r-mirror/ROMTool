@@ -170,13 +170,16 @@ doFetch() {
         if [ ! -d "${PROJECTPATH}" ]; then continue; fi
 
         prin "Fetching repo $PROJECTPATH with branch $BRANCH"
-        prin
 
-        git -C "$CWD/$1" fetch -q $REMOTE $BRANCH || red "Error: Failed fetching repo $1"; prin
+        if ! git -C "$CWD/$1" fetch -q $REMOTE $BRANCH
+        then
+            red "Failed fetching repo $PROJECTPATH"
+            continue
+        fi
+
+        grn "Success"
 
     done
-
-    dbg "Info: Success start repo to $BRANCH"
 }
 
 #if [ ! -e "build/envsetup.sh" ]; then
