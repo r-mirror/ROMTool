@@ -154,6 +154,7 @@ doRebase() {
             fi
         else
             red "Failed checking url $repo_url, please check connection"
+            echo "$PROJECTPATH" >> $CWD/failed.list
         fi
         prin
     done
