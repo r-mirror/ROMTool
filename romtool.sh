@@ -107,6 +107,7 @@ doRebase() {
         fi
     done
     grn "#### Verification complete - no uncommitted changes found ####"
+    prin
 
     for files in success.list failed.list
     do
@@ -149,18 +150,21 @@ doRebase() {
                 fi
             else
                 echo "$PROJECTPATH" >> $CWD/failed.list
-                red "$REPO Rebasing failed"
+                red "$PROJECTPATH Rebasing failed"
             fi
         else
-            red "Failed fetching, please check connection"
+            red "Failed checking url $repo_url, please check connection"
         fi
+        prin
     done
 
     prin
     grn "These repos success rebasaing:"
     cat "$CWD/success.list"
-    red "These repos success rebasaing:"
+    prin
+    red "These repos failed rebasaing:"
     cat "$CWD/failed.list"
+    prin
 
     if [[ -f "$CWD/manifest/snippets/bianca.xml" ]]
     then
