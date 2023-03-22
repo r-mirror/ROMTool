@@ -30,7 +30,7 @@ Config.remote() { git config -f "$CONF" rom.remote "$@"; }
 # Environment default for BiancaProject
 AOSP="https://android.googlesource.com"
 LIST="${CWD}/project.list"
-BLACKLIST=$(cat "${CWD}/scripts/blacklist")
+BLACKLIST=$(cat "${CWD}/ROMTool/blacklist")
 MANIFEST=$(Config.xml)
 REMOTE=$(Config.remote)
 MANIFEST="${MANIFEST:-$CWD/.repo/manifests/snippets/bianca.xml}"
