@@ -215,7 +215,7 @@ doFetch() {
 doPush() {
     local REMOTE=$1
     local BRANCH=$2
-    [[ -n $FORCE ]] && red "Warning! Force push!" && FORCE="--force"
+    local CUSTOM=$3
 
     cat "${LIST}" | while read l; do
         set ${l}
@@ -224,7 +224,7 @@ doPush() {
 
         prin "Push repo $1 with branch $BRANCH"
 
-        if ! git -C "$CWD/$1" push $FORCE $REMOTE $BRANCH
+        if ! git -C "$CWD/$1" push $CUSTOM $REMOTE $BRANCH
         then
             red "Failed push repo $1"
             prin
@@ -296,6 +296,7 @@ usage() {
     prin "  rebase <currentbranch> <aosptag>    Rebase all repo with new aosp tag"
     prin "  push <remote> <branch>              Push all repo"
     prin "  push-force <remote> <branch>        Push all repo with flag --force"
+    prin "  push-delete <remote> <branch>        Push all repo with flag --force"
     prin "  help                                Print usage"
     prin
 }
@@ -355,10 +356,20 @@ while [[ $# -gt 0 ]]; do
         push-force)
             if [ -n "$2" ] && [ -n "$3" ] && [ ${2:0:1} != "-" ]; then
                 checkPath
-                doPush "$2" "$3" true
+                doPush "$2" "$3" "--force"
                 shift 2
             else
                 err "Error: Argument for $1 is missing or more/less than 2 argument. Command: push-force <remote> <branch>"
+            fi
+            exit
+            ;;
+        push-delete)
+            if [ -n "$2" ] && [ -n "$3" ] && [ ${2:0:1} != "-" ]; then
+                checkPath
+                doPush "$2" "$3" "--delete"
+                shift 2
+            else
+                err "Error: Argument for $1 is missing or more/less than 2 argument. Command: push-delete <remote> <branch>"
             fi
             exit
             ;;
