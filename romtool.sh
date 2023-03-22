@@ -287,6 +287,27 @@ doReset() {
     done
 }
 
+doRebaseAbort() {
+    cat "$CWD/failed.list" | while read l; do
+        set ${l}
+
+        if [ ! -d "$1" ]; then continue; fi
+
+        prin "Repo $1 rebase aborted"
+
+        if ! git -C "$CWD/$1" rebase --abort
+        then
+            red "Failed to rebase abort"
+            prin
+            continue
+        fi
+
+        grn "Success"
+        prin
+
+    done
+}
+
 usage() {
     prin "Usage: $(basename $0) <command> [<argument>]"
     prin
@@ -298,6 +319,7 @@ usage() {
     prin "  fetch <remote> <branch>             Fetching all repo"
     prin "  reset-hard <branch>                 Reseting hard"
     prin "  rebase <currentbranch> <aosptag>    Rebase all repo with new aosp tag"
+    prin "  rebase-abort                        Abort all repo from from failed.list"
     prin "  push <remote> <branch>              Push all repo"
     prin "  push-force <remote> <branch>        Push all repo with flag --force"
     prin "  push-delete <remote> <branch>       Push all repo with flag --delete"
@@ -335,6 +357,11 @@ while [[ $# -gt 0 ]]; do
             else
                 err "Error: Argument for $1 is missing or more/less than 2 argument. Command: rebase <currentbranch> <aospnewtag>"
             fi
+            exit
+            ;;
+        rebase-abort)
+            checkPath
+            doRebaseAbort
             exit
             ;;
         fetch)
