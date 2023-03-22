@@ -82,14 +82,30 @@ doList() {
 }
 
 changeBranchManifest() {
-    local XML="$CWD/manifest/snippets/aheads.xml"
-    local OLD=$1
-    local NEW=$2
+    local XML="$CWD/manifest/snippets/bianca.xml"
+    local NEW=$1
+    local SC=($(cat $CWD/success.list))
+    local FL=($(cat $CWD/failed.list))
 
-    # Specific line 6 only to be replace
-    sed -i "6s|$OLD|$NEW|" $XML
+    for i in ${SC[@]}
+    do
+        line=$(grep -n \"$i\" "$XML" | cut -d: -f 1)
+        if [[ -n $line ]]
+        then
+            sed -i "${line}s|remote=\"dudu\"|remote=\"dudu\" revision=\"${NEW}\"|" "$XML"
+        fi
+    done
 
-    git -C "$CWD/manifest" commit -a -m "manifest: Changed branch to $NEW for testing" || return 1
+    for i in ${FL[@]}
+    do
+        line=$(grep -n \"$i\" "$XML" | cut -d: -f 1)
+        if [[ -n $line ]]
+        then
+            sed -i "${line}s|remote=\"dudu\"|remote=\"dudu\" revision=\"${NEW}\"|" "$XML"
+        fi
+    done
+
+    git -C "$CWD/manifest" commit -a -m "[DNM]manifest: Track $NEW branch" || return 1
 }
 
 doRebase() {
@@ -170,7 +186,7 @@ doRebase() {
     if [[ -f "$CWD/manifest/snippets/bianca.xml" ]]
     then
         dbg "Detected Bianca Project XML. Trying to change branch with new rebased branch"
-        changeBranchManifest "$BRANCH" "$NEWBRANCH"
+        changeBranchManifest "$NEWBRANCH"
     fi 
 }
 
