@@ -8,8 +8,13 @@ hardware/bianca/interfaces
 hardware/qcom-caf/msm8996/audio
 hardware/qcom-caf/msm8996/display
 hardware/qcom-caf/msm8996/media
+hardware/qcom-caf/sdm660/audio
+hardware/qcom-caf/sdm660/display
+hardware/qcom-caf/sdm660/media
 official-devices
 packages/apps/FaceUnlockService
+packages/apps/GameSpace
+packages/apps/ProtonWallpaperStub
 packages/apps/SimpleDeviceConfig
 packages/apps/Reptools
 packages/apps/FaceUnlockService
