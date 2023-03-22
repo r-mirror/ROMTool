@@ -296,7 +296,7 @@ usage() {
     prin "  rebase <currentbranch> <aosptag>    Rebase all repo with new aosp tag"
     prin "  push <remote> <branch>              Push all repo"
     prin "  push-force <remote> <branch>        Push all repo with flag --force"
-    prin "  push-delete <remote> <branch>        Push all repo with flag --force"
+    prin "  push-delete <remote> <branch>       Push all repo with flag --delete"
     prin "  help                                Print usage"
     prin
 }
