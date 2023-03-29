@@ -304,6 +304,34 @@ doReset() {
     done
 }
 
+doBackup() {
+    local BRANCH=$1
+    local NEWBRANCH=$2
+
+    cat "${LIST}" | while read l; do
+        set ${l}
+
+        if [ ! -d "$1" ]; then continue; fi
+
+        NOW=$(git -C $CWD/$1 branch --show-current)
+
+        prin "Backup repo $1 to $NEWBRANCH"
+
+        if ! git -C "$CWD/$1" checkout $BRANCH -b $NEWBRANCH &> /dev/null
+        then
+            red "Failed backup repo $1"
+            prin
+            continue
+        fi
+
+        git -C "$CWD/$1" checkout $NOW &> /dev/null
+
+        grn "Success"
+        prin
+
+    done
+}
+
 doRebaseAbort() {
     cat "$CWD/failed.list" | while read l; do
         set ${l}
@@ -340,6 +368,7 @@ usage() {
     prin "  push <remote> <branch>              Push all repo"
     prin "  push-force <remote> <branch>        Push all repo with flag --force"
     prin "  push-delete <remote> <branch>       Push all repo with flag --delete"
+    prin "  backup <branch> <new branch>        Backup a branch with new branch"
     prin "  help                                Print usage"
     prin
 }
@@ -438,6 +467,16 @@ while [[ $# -gt 0 ]]; do
                 shift
             else
                 err "Error: Argument for $1 is missing or more/less than 1 argument. Command: reset-hard <branch>"
+            fi
+            exit
+            ;;
+        backup)
+            if [ -n "$2" ] && [ -n "$3" ] && [ ${2:0:1} != "-" ]; then
+                checkPath
+                doBackup "$2" "$3"
+                shift 2
+            else
+                err "Error: Argument for $1 is missing or more/less than 2 argument. Command: backup <branch> <new branch>"
             fi
             exit
             ;;
