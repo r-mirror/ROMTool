@@ -99,6 +99,7 @@ changeBranchManifest() {
     for i in ${FL[@]}
     do
         line=$(grep -n \"$i\" "$XML" | cut -d: -f 1)
+        git -C $i rev-parse --verify $NEW &> /dev/null || continue
         if [[ -n $line ]]
         then
             sed -i "${line}s|remote=\"dudu\"|remote=\"dudu\" revision=\"${NEW}\"|" "$XML"
