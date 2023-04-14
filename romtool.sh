@@ -142,6 +142,13 @@ doRebase() {
             *) repo_url="$AOSP/platform/$PROJECTPATH" ;;
         esac
 
+        if [[ "$PROJECTPATH" == "vendor/bianca" ]]; then
+            dbg "Detecting vendor/bianca, checking out to $NEWBRANCH"
+            git -C "$CWD/$PROJECTPATH" checkout -b "$NEWBRANCH" &> /dev/null
+            echo "$PROJECTPATH" >> $CWD/success.list
+            continue
+        fi
+
         if wget -q --spider $repo_url; then
             blu "Rebasaing $PROJECTPATH"
             if  ! git -C "$CWD/$PROJECTPATH" checkout "${BRANCH}" &> /dev/null
