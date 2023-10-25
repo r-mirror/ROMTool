@@ -198,6 +198,116 @@ doRebase() {
     fi 
 }
 
+doMerge() {
+    local PROJECTPATHS=$(cat $LIST)
+    local BRANCH=$1
+    local TAG=$2
+    local NEWBRANCH="${BRANCH}-merge-${TAG}"
+
+    # Make sure manifest and forked repos are in a consistent state
+    prin "#### Verifying there are no uncommitted changes on forked AOSP projects ####"
+    for i in ${PROJECTPATHS} .repo/manifests; do
+        # cd "${CWD}/${PROJECTPATH}"
+        if [[ -n "$(git -C "$CWD/$i" status --porcelain)" ]]; then
+            err "Path ${i} has uncommitted changes. Please fix."
+        fi
+    done
+    grn "#### Verification complete - no uncommitted changes found ####"
+    prin
+
+    for files in success.list failed.list
+    do
+        rm $CWD/$files &> /dev/null
+        touch $CWD/$files
+    done
+
+    for PROJECTPATH in ${PROJECTPATHS}; do
+        if [[ "${BLACKLIST}" =~ "${PROJECTPATH}" ]]; then
+            continue
+        fi
+
+        case $PROJECTPATH in
+            build/make) repo_url="$AOSP/platform/build" ;;
+            *) repo_url="$AOSP/platform/$PROJECTPATH" ;;
+        esac
+
+        if [[ "$PROJECTPATH" == "vendor/bianca" ]]; then
+            dbg "Detecting vendor/bianca, checking out to $NEWBRANCH"
+            git -C "$CWD/$PROJECTPATH" checkout -b "$NEWBRANCH" &> /dev/null
+            echo "$PROJECTPATH" >> $CWD/success.list
+            continue
+        fi
+
+        if wget -q --spider $repo_url; then
+            blu "Merging $PROJECTPATH"
+            if  ! git -C "$CWD/$PROJECTPATH" checkout "${BRANCH}" &> /dev/null
+            then
+                red "Error: Failed checkout repo $PROJECTPATH to branch $BRANCH, please check again. Continue to next repo"
+                continue
+            fi
+            if ! git -C "$CWD/$PROJECTPATH" fetch -q $repo_url $TAG
+            then
+                red "Error: Failed fetching repo $PROJECTPATH, please check connection. Continue to next repo"
+                continue
+            fi
+            git -C "$CWD/$PROJECTPATH" branch -D "$NEWBRANCH" &> /dev/null
+            git -C "$CWD/$PROJECTPATH" checkout -b "$NEWBRANCH" &> /dev/null
+            if git -C "$CWD/$PROJECTPATH" merge FETCH_HEAD &> /dev/null; then
+                if [[ $(git -C "$CWD/$PROJECTPATH" rev-parse HEAD) != $(git -C "$CWD/$PROJECTPATH" rev-parse $REMOTE/$BRANCH) ]] && [[ $(git -C "$CWD/$PROJECTPATH" diff HEAD $REMOTE/$BRANCH) ]]; then
+                    echo "$PROJECTPATH" >> $CWD/success.list
+                    grn "Rebase $PROJECTPATH success"
+                else
+                    prin "$PROJECTPATH - unchanged"
+                    git -C "$CWD/$PROJECTPATH" checkout "${BRANCH}" &> /dev/null
+                    git -C "$CWD/$PROJECTPATH" branch -D "$NEWBRANCH" &> /dev/null
+                fi
+            else
+                echo "$PROJECTPATH" >> $CWD/failed.list
+                red "$PROJECTPATH Merging failed failed"
+            fi
+        else
+            red "Failed checking url $repo_url, please check connection"
+            echo "$PROJECTPATH" >> $CWD/failed.list
+        fi
+        prin
+    done
+
+    prin
+    grn "These repos success merging:"
+    cat "$CWD/success.list"
+    prin
+    red "These repos failed merging:"
+    cat "$CWD/failed.list"
+    prin
+
+    if [[ -f "$CWD/manifest/snippets/bianca.xml" ]]
+    then
+        dbg "Detected Bianca Project XML. Trying to change branch with new rebased branch"
+        changeBranchManifest "$NEWBRANCH"
+    fi 
+}
+
+doMergeAbort() {
+    cat "$CWD/failed.list" | while read l; do
+        set ${l}
+
+        if [ ! -d "$1" ]; then continue; fi
+
+        prin "Repo $1 merged aborted"
+
+        if ! git -C "$CWD/$1" merge --abort
+        then
+            red "Failed to merge abort"
+            prin
+            continue
+        fi
+
+        grn "Success"
+        prin
+
+    done
+}
+
 doStart() {
     BRANCH=$1
 
@@ -419,6 +529,8 @@ usage() {
     prin "  reset-hard <branch>                 Reseting hard"
     prin "  rebase <currentbranch> <aosptag>    Rebase all repo with new aosp tag"
     prin "  rebase-abort                        Abort all repo from from failed.list"
+    prin "  merge <currentbranch> <aosptag>     Merge all repo with new aosp tag"
+    prin "  merge-abort                         Abort all repo from from failed.list"
     prin "  push <remote> <branch>              Push all repo"
     prin "  push-force <remote> <branch>        Push all repo with flag --force"
     prin "  push-delete <remote> <branch>       Push all repo with flag --delete"
@@ -462,6 +574,21 @@ while [[ $# -gt 0 ]]; do
             exit
             ;;
         rebase-abort)
+            checkPath
+            doRebaseAbort
+            exit
+            ;;
+        merge)
+            if [ -n "$2" ] && [ -n "$3" ] && [ ${2:0:1} != "-" ]; then
+                checkPath
+                doRebase "$2" "$3"
+                shift 2
+            else
+                err "Error: Argument for $1 is missing or more/less than 2 argument. Command: merge <currentbranch> <aospnewtag>"
+            fi
+            exit
+            ;;
+        merge-abort)
             checkPath
             doRebaseAbort
             exit
