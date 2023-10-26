@@ -517,6 +517,29 @@ doTagDel() {
     done
 }
 
+doBranchDel() {
+    local BRANCH=$1
+
+    cat "${LIST}" | while read l; do
+        set ${l}
+
+        if [ ! -d "$1" ]; then continue; fi
+
+        prin "Repo $1 delete branch: $BRANCH"
+
+        if ! git -C "$CWD/$1" branch -D $BRANCH
+        then
+            red "Failed delete branch for repo: $1"
+            prin
+            continue
+        fi
+
+        grn "Success"
+        prin
+
+    done
+}
+
 usage() {
     prin "Usage: $(basename $0) <command> [<argument>]"
     prin
@@ -537,6 +560,7 @@ usage() {
     prin "  backup <branch> <new branch>        Backup a branch with new branch"
     prin "  tag <new tag>                       Add new tag"
     prin "  tag-delete <tag>                    Delete existing tag"
+    prin "  branch-delete <branch>              Delete existing branch in local"
     prin "  help                                Print usage"
     prin
 }
@@ -680,6 +704,16 @@ while [[ $# -gt 0 ]]; do
                 shift
             else
                 err "Error: Argument for $1 is missing or more/less than 1 argument. Command: tag-delete <tag>"
+            fi
+            exit
+            ;;
+        branch-delete)
+            if [ -n "$2" ] && [ ${2:0:1} != "-" ]; then
+                checkPath
+                doBranchDel "$2"
+                shift
+            else
+                err "Error: Argument for $1 is missing or more/less than 1 argument. Command: branch-delete <branch>"
             fi
             exit
             ;;
