@@ -239,7 +239,7 @@ doMerge() {
         fi
 
         if wget -q --spider $repo_url; then
-            blu "Merging $PROJECTPATH"
+            blu "Merging $PROJECTPATH with $TAG"
             if  ! git -C "$CWD/$PROJECTPATH" checkout "${BRANCH}" &> /dev/null
             then
                 red "Error: Failed checkout repo $PROJECTPATH to branch $BRANCH, please check again. Continue to next repo"
@@ -255,7 +255,7 @@ doMerge() {
             if git -C "$CWD/$PROJECTPATH" merge FETCH_HEAD &> /dev/null; then
                 if [[ $(git -C "$CWD/$PROJECTPATH" rev-parse HEAD) != $(git -C "$CWD/$PROJECTPATH" rev-parse $REMOTE/$BRANCH) ]] && [[ $(git -C "$CWD/$PROJECTPATH" diff HEAD $REMOTE/$BRANCH) ]]; then
                     echo "$PROJECTPATH" >> $CWD/success.list
-                    grn "Rebase $PROJECTPATH success"
+                    grn "Merging $PROJECTPATH success"
                 else
                     prin "$PROJECTPATH - unchanged"
                     git -C "$CWD/$PROJECTPATH" checkout "${BRANCH}" &> /dev/null
@@ -263,7 +263,7 @@ doMerge() {
                 fi
             else
                 echo "$PROJECTPATH" >> $CWD/failed.list
-                red "$PROJECTPATH Merging failed failed"
+                red "$PROJECTPATH Merging failed"
             fi
         else
             red "Failed checking url $repo_url, please check connection"
@@ -282,7 +282,7 @@ doMerge() {
 
     if [[ -f "$CWD/manifest/snippets/bianca.xml" ]]
     then
-        dbg "Detected Bianca Project XML. Trying to change branch with new rebased branch"
+        dbg "Detected Bianca Project XML. Trying to change branch with new merged branch"
         changeBranchManifest "$NEWBRANCH"
     fi 
 }
@@ -581,7 +581,7 @@ while [[ $# -gt 0 ]]; do
         merge)
             if [ -n "$2" ] && [ -n "$3" ] && [ ${2:0:1} != "-" ]; then
                 checkPath
-                doRebase "$2" "$3"
+                doMerge "$2" "$3"
                 shift 2
             else
                 err "Error: Argument for $1 is missing or more/less than 2 argument. Command: merge <currentbranch> <aospnewtag>"
@@ -590,7 +590,7 @@ while [[ $# -gt 0 ]]; do
             ;;
         merge-abort)
             checkPath
-            doRebaseAbort
+            doMergeAbort
             exit
             ;;
         fetch)
