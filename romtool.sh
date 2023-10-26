@@ -21,7 +21,7 @@ do
    ! command -v "$dep" &> /dev/null && err "Unable to locate dependency $dep. Exiting."
 done
 
-CONF="$cwd/.romtoolconfig"
+CONF="$CWD/.romtoolconfig"
 
 ##### Setup Config #####
 Config.xml() { git config -f "$CONF" rom.xml "$@"; }
