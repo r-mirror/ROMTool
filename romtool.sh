@@ -448,6 +448,12 @@ doBackup() {
         prin
 
     done
+
+    if [[ -f "$CWD/manifest/snippets/bianca.xml" ]]
+    then
+        dbg "Detected Bianca Project XML. Trying to change branch with new backup branch"
+        changeBranchManifest "$NEWBRANCH"
+    fi
 }
 
 doRebaseAbort() {
