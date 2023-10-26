@@ -17,7 +17,6 @@ hardware/qcom-caf/sdm660/media
 hardware/xiaomi
 official-devices
 packages/apps/FaceUnlockService
-packages/apps/GameSpace
 packages/apps/ProtonWallpaperStub
 packages/apps/SimpleDeviceConfig
 packages/apps/Reptools
