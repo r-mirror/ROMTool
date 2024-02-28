@@ -27,21 +27,21 @@ CONF="$CWD/.romtoolconfig"
 Config.xml() { git config -f "$CONF" rom.xml "$@"; }
 Config.remote() { git config -f "$CONF" rom.remote "$@"; }
 
-# Environment default for BiancaProject
+# Environment default for RevengeOS
 AOSP="https://android.googlesource.com"
 LIST="${CWD}/project.list"
 BLACKLIST=$(cat "${CWD}/ROMTool/blacklist")
 MANIFEST=$(Config.xml)
 REMOTE=$(Config.remote)
-MANIFEST="${MANIFEST:-$CWD/.repo/manifests/snippets/bianca.xml}"
-REMOTE="${REMOTE:-dudu}"
+MANIFEST="${MANIFEST:-$CWD/.repo/manifests/snippets/revengeos.xml}"
+REMOTE="${REMOTE:-ros}"
 
 doInit() {
     [[ -e "build/envsetup.sh" ]] || err "Error: Must run from root of repo"
 
     dbg "Info: Creating project.list"
 
-    # Build list of Bianca Project forked repos
+    # Build list of RevengeOS forked repos
     local PROJECTPATHS=$(grep "remote=\"${REMOTE}" "${MANIFEST}" | sed -n 's/.*path="\([^"]\+\)".*/\1/p')
 
     for PROJECTPATH in ${PROJECTPATHS}; do
@@ -82,7 +82,7 @@ doList() {
 }
 
 changeBranchManifest() {
-    local XML="$CWD/manifest/snippets/bianca.xml"
+    local XML="$CWD/manifest/snippets/revengeos.xml"
     local NEW=$1
     local SC=($(cat $CWD/success.list))
     local FL=($(cat $CWD/failed.list))
@@ -92,7 +92,7 @@ changeBranchManifest() {
         line=$(grep -n \"$i\" "$XML" | cut -d: -f 1)
         if [[ -n $line ]]
         then
-            sed -i "${line}s|remote=\"dudu\"|remote=\"dudu\" revision=\"${NEW}\"|" "$XML"
+            sed -i "${line}s|remote=\"ros\"|remote=\"ros\" revision=\"${NEW}\"|" "$XML"
         fi
     done
 
@@ -102,7 +102,7 @@ changeBranchManifest() {
         git -C $i rev-parse --verify $NEW &> /dev/null || continue
         if [[ -n $line ]]
         then
-            sed -i "${line}s|remote=\"dudu\"|remote=\"dudu\" revision=\"${NEW}\"|" "$XML"
+            sed -i "${line}s|remote=\"ros\"|remote=\"ros\" revision=\"${NEW}\"|" "$XML"
         fi
     done
 
@@ -142,8 +142,8 @@ doRebase() {
             *) repo_url="$AOSP/platform/$PROJECTPATH" ;;
         esac
 
-        if [[ "$PROJECTPATH" == "vendor/bianca" ]]; then
-            dbg "Detecting vendor/bianca, checking out to $NEWBRANCH"
+        if [[ "$PROJECTPATH" == "vendor/revengeos" ]]; then
+            dbg "Detecting vendor/revengeos, checking out to $NEWBRANCH"
             git -C "$CWD/$PROJECTPATH" checkout -b "$NEWBRANCH" &> /dev/null
             echo "$PROJECTPATH" >> $CWD/success.list
             continue
@@ -191,9 +191,9 @@ doRebase() {
     cat "$CWD/failed.list"
     prin
 
-    if [[ -f "$CWD/manifest/snippets/bianca.xml" ]]
+    if [[ -f "$CWD/manifest/snippets/revengeos.xml" ]]
     then
-        dbg "Detected Bianca Project XML. Trying to change branch with new rebased branch"
+        dbg "Detected RevengeOS XML. Trying to change branch with new rebased branch"
         changeBranchManifest "$NEWBRANCH"
     fi 
 }
@@ -231,8 +231,8 @@ doMerge() {
             *) repo_url="$AOSP/platform/$PROJECTPATH" ;;
         esac
 
-        if [[ "$PROJECTPATH" == "vendor/bianca" ]]; then
-            dbg "Detecting vendor/bianca, checking out to $NEWBRANCH"
+        if [[ "$PROJECTPATH" == "vendor/revengeos" ]]; then
+            dbg "Detecting vendor/revengeos, checking out to $NEWBRANCH"
             git -C "$CWD/$PROJECTPATH" checkout -b "$NEWBRANCH" &> /dev/null
             echo "$PROJECTPATH" >> $CWD/success.list
             continue
@@ -280,9 +280,9 @@ doMerge() {
     cat "$CWD/failed.list"
     prin
 
-    if [[ -f "$CWD/manifest/snippets/bianca.xml" ]]
+    if [[ -f "$CWD/manifest/snippets/revengeos.xml" ]]
     then
-        dbg "Detected Bianca Project XML. Trying to change branch with new merged branch"
+        dbg "Detected RevengeOS XML. Trying to change branch with new merged branch"
         changeBranchManifest "$NEWBRANCH"
     fi 
 }
@@ -449,9 +449,9 @@ doBackup() {
 
     done
 
-    if [[ -f "$CWD/manifest/snippets/bianca.xml" ]]
+    if [[ -f "$CWD/manifest/snippets/revengeos.xml" ]]
     then
-        dbg "Detected Bianca Project XML. Trying to change branch with new backup branch"
+        dbg "Detected RevengeOS XML. Trying to change branch with new backup branch"
         changeBranchManifest "$NEWBRANCH"
     fi
 }
